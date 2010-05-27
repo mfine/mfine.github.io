@@ -1,0 +1,10 @@
+---
+layout: post
+title: First Post
+---
+
+h1. {{ page.title }}
+
+p(meta). 26 May 2010 - Seattle
+
+My first post.

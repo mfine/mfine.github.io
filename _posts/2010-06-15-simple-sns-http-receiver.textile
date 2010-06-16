@@ -11,17 +11,16 @@ p. Amazon's Simple Notification Service enables you to publish
 messages to subscribers in a scalable, cost-effective
 manner. Presently, notifications can be delivered either to email or
 HTTP endpoints. This post helps get you started setting up an embedded
-HTTP server and then processing notifications in Java using the "AWS
-SDK for Java":http://aws.amazon.com/sdkforjava/, the "Jetty HTTP
-Server":http://jetty.codehaus.org/jetty/, and the "Jackson JSON
-processor":http://jackson.codehaus.org/.
+HTTP server and then processing notifications in Java using the
+"AWS SDK for Java":http://aws.amazon.com/sdkforjava/, the
+"Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and the 
+"Jackson JSON processor":http://jackson.codehaus.org/.
 
 p. Let's look at the code for setting up a publisher. First,
 instantiate a SNS client with your AWS security credentials:
 
-bc..
-   // Create a client 
-   AmazonSNSClient service = new AmazonSNSClient(new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY));
+bc.. // Create a client 
+     AmazonSNSClient service = new AmazonSNSClient(new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY));
 
 p. Then create a topic named *"MyTopic"* with a CreateTopic request to
 the SNS client:

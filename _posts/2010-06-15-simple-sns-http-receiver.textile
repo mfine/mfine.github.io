@@ -1,6 +1,6 @@
 ---
 layout: post
-title: A Simple Java Embedded HTTP Receiver with Amazon's Simple Notification Service
+title: A Simple HTTP Receiver for Amazon's Simple Notification Service
 ---
 
 h1. {{ page.title }}
@@ -39,10 +39,11 @@ h2. Subscribing to Topics
 p. With a publisher up and running, let's now look at the code for setting up a receiver. First, subscribe a local HTTP endpoint with a SubscribeRequest to the SNS client using the topic ARN returned from the CreateTopic result:
 
 bc.. // Subscribe to topic
+String address = InetAddress.getLocalHost().getHostAddress();
 SubscribeRequest subscribeReq = new SubscribeRequest()
    .withTopicArn(createRes.getTopicArn())
    .withProtocol("http")
-   .withEndpoint("http://" + InetAddress.getLocalHost().getHostAddress() + ":" + port);
+   .withEndpoint("http://" + address + ":" + port);
 service.subscribe(subscribeReq);
 
 p. Then instantiate and start a local HTTP server:

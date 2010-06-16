@@ -104,6 +104,6 @@ if (message != null) {
    System.out.println("Received message: " + message);
 }
 
-p. That's it! You are subscribed to a topic and now receiving messages from a topic!
+p. That's it! You are subscribed to a topic and are now receiving messages from a topic!
 
 p. You can now setup multiple publishers sending messages to multiple subscribers over HTTP endpoints using Java in a scalable, cost-effective manner. The complete code for both senders and receivers can be found at "AmazonSNSExample":http://github.com/mfine/AmazonSNSExample.

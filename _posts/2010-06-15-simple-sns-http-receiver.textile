@@ -92,6 +92,7 @@ if (token != null) {
       .withTopicArn(createRes.getTopicArn())
       .withToken(token);
    service.confirmSubscription(confirmReq);
+}
 
 p. With your subscription confirmed, begin receiving the timestamped example messages published above:
 

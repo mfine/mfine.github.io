@@ -5,9 +5,11 @@ title: A Simple Java Embedded HTTP Receiver with Amazon's Simple Notification Se
 
 h1. {{ page.title }}
 
-p(meta). 15 June 2010 - Seattle
+p(meta). 15 June 2010
 
-p. Amazon's Simple Notification Service enables you to publish messages to subscribers in a scalable, cost-effective manner. Presently, notifications can be delivered either to email or HTTP endpoints. This post helps get you started setting up an embedded HTTP server and then processing notifications in Java using the "AWS SDK for Java":http://aws.amazon.com/sdkforjava/, the "Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and the  "Jackson JSON processor":http://jackson.codehaus.org/.
+p. Amazon's Simple Notification Service enables you to publish messages to subscribers in a scalable, cost-effective manner. Notifications can be delivered either to email or HTTP endpoints. This post helps get you started setting up embedded HTTP servers and processing notifications in Java using "AWS SDK for Java":http://aws.amazon.com/sdkforjava/, "Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and "Jackson JSON processor":http://jackson.codehaus.org/.
+
+h2. Publishing to Topics
 
 p. Let's look at the code for setting up a publisher. First, instantiate a SNS client with your AWS security credentials:
 
@@ -29,6 +31,8 @@ PublishRequest publishReq = new PublishRequest()
    .withTopicArn(createRes.getTopicArn())
    .withMessage("Example notification sent at " + new Date());
 service.publish(publishReq);
+
+h2. Subscribing to Topics
 
 p. With a publisher up and running, let's now look at the code for setting up a receiver. First, subscribe a local HTTP endpoint with a SubscribeRequest to the SNS client using the topic ARN returned from the CreateTopic result:
 
@@ -99,4 +103,4 @@ if (message != null) {
 
 p. That's it! You can now setup multiple publishers sending messages to multiple subscribers over HTTP endpoints using Java in a scalable, cost-effective manner.
 
-p. The complete code for both senders and receivers can be found is at "AmazonSNSExample":http://github.com/mfine/AmazonSNSExample.
+p. The complete code for both senders and receivers can be found at "AmazonSNSExample":http://github.com/mfine/AmazonSNSExample.

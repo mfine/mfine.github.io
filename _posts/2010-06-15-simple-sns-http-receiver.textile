@@ -11,121 +11,92 @@ p. Amazon's Simple Notification Service enables you to publish messages to subsc
 
 p. Let's look at the code for setting up a publisher. First, instantiate a SNS client with your AWS security credentials:
 
-bc..   // Create a client 
-   BasicAWSCredentials creds = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY)
-   AmazonSNSClient service = new AmazonSNSClient(creds);
+bc.. // Create a client 
+BasicAWSCredentials creds = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY)
+AmazonSNSClient service = new AmazonSNSClient(creds);
 
 p. Then create a topic named *"MyTopic"* with a CreateTopic request to the SNS client:
 
-bc..   // Create a topic
-   CreateTopicRequest createReq = new CreateTopicRequest()
-      .withName("MyTopic");
-   CreateTopicResult createRes = service.createTopic(createReq);
+bc.. // Create a topic
+CreateTopicRequest createReq = new CreateTopicRequest()
+   .withName("MyTopic");
+CreateTopicResult createRes = service.createTopic(createReq);
 
 p. Finally, publish a timestamped example message with a Publish request to the SNS client using the topic ARN returned from the CreateTopic result:
 
-bc..   // Publish to a topic
-   PublishRequest publishReq = new PublishRequest()
+bc.. // Publish to a topic
+PublishRequest publishReq = new PublishRequest()
+   .withTopicArn(createRes.getTopicArn())
+   .withMessage("Example notification sent at " + new Date());
+service.publish(publishReq);
+
+p. With a publisher up and running, let's now look at the code for setting up a receiver. First, subscribe a local HTTP endpoint with a SubscribeRequest to the SNS client using the topic ARN returned from the CreateTopic result:
+
+bc.. // Subscribe to topic
+SubscribeRequest subscribeReq = new SubscribeRequest()
+   .withTopicArn(createRes.getTopicArn())
+   .withProtocol("http")
+   .withEndpoint("http://" + InetAddress.getLocalHost().getHostAddress() + ":" + port);
+service.subscribe(subscribeReq);
+
+p. Then instantiate and start a local HTTP server:
+
+bc.. // Create and start HTTP server
+Server server = new Server(port);
+server.setHandler(new AmazonSNSHandler());
+server.start();
+
+p. The local HTTP server's handler processes a HTTP request encoded in JSON by first scanning the request into a string:
+
+bc.. // Scan request into a string
+Scanner scanner = new Scanner(request.getInputStream());
+StringBuilder sb = new StringBuilder();
+while (scanner.hasNextLine()) {
+   sb.append(scanner.nextLine());
+}
+
+p. Then parsing the JSON request into a message map between fields and values:
+
+bc.. // Build a message map from the JSON encoded message
+InputStream bytes = new ByteArrayInputStream(sb.toString().getBytes());
+Map<String, String> messageMap = new ObjectMapper().readValue(bytes, Map.class);
+
+p. Finally, enqueuing the message map to a local queue for the receiver and setting the HTTP response:
+
+bc.. // Enqueue message map for receive loop
+messageQueue.add(messageMap);
+
+// Set HTTP response
+response.setContentType("text/html");
+response.setStatus(HttpServletResponse.SC_OK);
+((Request) request).setHandled(true);
+
+p. With the local HTTP server started and enqueuing message maps to a local queue, let's now look at the code for the rest of the receiver. After receiving a message map on a local queue, look for a subscription confirmation token to confirm your subscription with a ConfirmSubscription request using the topic ARN returned from the CreateTopic result and the token:
+
+bc.. // Wait for a message from HTTP server
+Map<String, String> messageMap = messageQueue.take();
+
+// Look for a subscription confirmation Token
+String token = messageMap.get("Token");
+if (token != null) {
+
+   // Confirm subscription
+   ConfirmSubscriptionRequest confirmReq = new ConfirmSubscriptionRequest()
       .withTopicArn(createRes.getTopicArn())
-      .withMessage("Example notification sent at " + new Date());
-   service.publish(publishReq);
+      .withToken(token);
+   service.confirmSubscription(confirmReq);
 
-With a publisher up and running, let's now look at the code for
-setting up a receiver. First, subscribe a local HTTP endpoint with a
-SubscribeRequest to the SNS client using the topic ARN returned from
-the CreateTopic result:
+p. With your subscription confirmed, begin receiving the timestamped example messages published above:
 
-@
-   // Subscribe to topic
-   SubscribeRequest subscribeReq = new SubscribeRequest()
-      .withTopicArn(createRes.getTopicArn())
-      .withProtocol("http")
-      .withEndpoint("http://" + InetAddress.getLocalHost().getHostAddress() + ":" + port);
-   service.subscribe(subscribeReq);
-@
+bc.. // Wait for a message from HTTP server
+Map<String, String> messageMap = messageQueue.take();
 
-Then instantiate and start a local HTTP server:
+// Check for a notification
+String message = messageMap.get("Message");
+if (message != null) {
+   System.out.println("Received message: " + message);
+}
 
-@
-   // Create and start HTTP server
-   Server server = new Server(port);
-   server.setHandler(new AmazonSNSHandler());
-   server.start();
-@
+p. That's it! You can now setup multiple publishers sending messages to multiple subscribers over HTTP endpoints using Java in a scalable, cost-effective manner.
 
-The local HTTP server's handler processes a HTTP request encoded in
-JSON by first scanning the request into a string:
-
-@
-   // Scan request into a string
-   Scanner scanner = new Scanner(request.getInputStream());
-   StringBuilder sb = new StringBuilder();
-   while (scanner.hasNextLine()) {
-      sb.append(scanner.nextLine());
-   }
-@
-
-Then parsing the JSON request into a message map between fields
-and values:
-
-@
-   // Build a message map from the JSON encoded message
-   InputStream bytes = new ByteArrayInputStream(sb.toString().getBytes());
-   Map<String, String> messageMap = new ObjectMapper().readValue(bytes, Map.class);
-@
-
-Finally, enqueuing the message map to a local queue for the receiver
-and setting the HTTP response:
-
-@
-   // Enqueue message map for receive loop
-   messageQueue.add(messageMap);
-
-   // Set HTTP response
-   response.setContentType("text/html");
-   response.setStatus(HttpServletResponse.SC_OK);
-   ((Request) request).setHandled(true);
-@
-
-With the local HTTP server started and enqueuing message maps to a
-local queue, let's now look at the code for the rest of the
-receiver. After receiving a message map on a local queue, look for a
-subscription confirmation token to confirm your subscription with a
-ConfirmSubscription request using the topic ARN returned from the
-CreateTopic result and the token:
-
-@
-   // Wait for a message from HTTP server
-   Map<String, String> messageMap = messageQueue.take();
-
-   // Look for a subscription confirmation Token
-   String token = messageMap.get("Token");
-   if (token != null) {
-
-      // Confirm subscription
-      ConfirmSubscriptionRequest confirmReq = new ConfirmSubscriptionRequest()
-         .withTopicArn(createRes.getTopicArn())
-         .withToken(token);
-      service.confirmSubscription(confirmReq);
-@
-
-With your subscription confirmed, begin receiving the timestamped example
-messages published above:
-
-@
-   // Wait for a message from HTTP server
-   Map<String, String> messageMap = messageQueue.take();
-
-   // Check for a notification
-   String message = messageMap.get("Message");
-   if (message != null) {
-      System.out.println("Received message: " + message);
-   }
-@
-
-That's it! You can now setup multiple publishers sending messages to
-multiple subscribers over HTTP endpoints using Java in a scalable,
-cost-effective manner.
-
-The complete code for both senders and receivers can be found is at
-"AmazonSNSExample":http://github.com/mfine/AmazonSNSExample.
+p. The complete code for both senders and receivers can be found is at "AmazonSNSExample":http://github.com/mfine/AmazonSNSExample.

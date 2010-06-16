@@ -7,41 +7,28 @@ h1. {{ page.title }}
 
 p(meta). 15 June 2010 - Seattle
 
-p. Amazon's Simple Notification Service enables you to publish
-messages to subscribers in a scalable, cost-effective
-manner. Presently, notifications can be delivered either to email or
-HTTP endpoints. This post helps get you started setting up an embedded
-HTTP server and then processing notifications in Java using the
-"AWS SDK for Java":http://aws.amazon.com/sdkforjava/, the
-"Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and the 
-"Jackson JSON processor":http://jackson.codehaus.org/.
+p. Amazon's Simple Notification Service enables you to publish messages to subscribers in a scalable, cost-effective manner. Presently, notifications can be delivered either to email or HTTP endpoints. This post helps get you started setting up an embedded HTTP server and then processing notifications in Java using the "AWS SDK for Java":http://aws.amazon.com/sdkforjava/, the "Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and the  "Jackson JSON processor":http://jackson.codehaus.org/.
 
-p. Let's look at the code for setting up a publisher. First,
-instantiate a SNS client with your AWS security credentials:
+p. Let's look at the code for setting up a publisher. First, instantiate a SNS client with your AWS security credentials:
 
-bc.. // Create a client 
-     AmazonSNSClient service = new AmazonSNSClient(new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY));
+bc..   // Create a client 
+   BasicAWSCredentials creds = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY)
+   AmazonSNSClient service = new AmazonSNSClient(creds);
 
-p. Then create a topic named *"MyTopic"* with a CreateTopic request to
-the SNS client:
+p. Then create a topic named *"MyTopic"* with a CreateTopic request to the SNS client:
 
-bc..
-   // Create a topic
+bc..   // Create a topic
    CreateTopicRequest createReq = new CreateTopicRequest()
       .withName("MyTopic");
    CreateTopicResult createRes = service.createTopic(createReq);
 
-p. Finally, publish a timestamped example message with a Publish
-request to the SNS client using the topic ARN returned from the
-CreateTopic result:
+p. Finally, publish a timestamped example message with a Publish request to the SNS client using the topic ARN returned from the CreateTopic result:
 
-@
-   // Publish to a topic
+bc..   // Publish to a topic
    PublishRequest publishReq = new PublishRequest()
       .withTopicArn(createRes.getTopicArn())
       .withMessage("Example notification sent at " + new Date());
    service.publish(publishReq);
-@
 
 With a publisher up and running, let's now look at the code for
 setting up a receiver. First, subscribe a local HTTP endpoint with a

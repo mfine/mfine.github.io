@@ -7,7 +7,8 @@ h1. {{ page.title }}
 
 p(meta). 15 June 2010
 
-p. Amazon's Simple Notification Service enables you to publish messages to subscribers in a scalable, cost-effective manner. Notifications can be delivered either to email or HTTP endpoints. This post helps get you started setting up embedded HTTP servers and processing notifications in Java using "AWS SDK for Java":http://aws.amazon.com/sdkforjava/, "Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and "Jackson JSON processor":http://jackson.codehaus.org/.
+p. Amazon's Simple Notification Service enables you to publish messages to subscribers in a scalable, cost-effective manner. Notifications can be delivered either to email or HTTP endpoints. This post helps get you started setting up embedded HTTP servers and processing notifications in Java using the "AWS SDK for Java":http://aws.amazon.com/sdkforjava/, the "Jetty HTTP Server":http://jetty.codehaus.org/jetty/, and the "Jackson JSON processor":http://jackson.codehaus.org/.
+
 
 h2. Publishing to Topics
 
@@ -31,6 +32,7 @@ PublishRequest publishReq = new PublishRequest()
    .withTopicArn(createRes.getTopicArn())
    .withMessage("Example notification sent at " + new Date());
 service.publish(publishReq);
+
 
 h2. Subscribing to Topics
 

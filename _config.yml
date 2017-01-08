@@ -1,2 +1,6 @@
-markdown: rdiscount
-pygments: true
+markdown: kramdown
+kramdown:
+  syntax_highlighter: rouge
+  input: GFM
+  fenced_code_blocks: true
+
